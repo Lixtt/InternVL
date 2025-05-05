@@ -17,7 +17,7 @@ from peft import LoraConfig, get_peft_model
 from torch import nn
 from torch.nn import CrossEntropyLoss
 from transformers import (AutoModel, GenerationConfig, LlamaForCausalLM,
-                          LlamaTokenizer, Qwen2ForCausalLM)
+                          LlamaTokenizer, Qwen2ForCausalLM, Qwen3ForCausalLM)
 from transformers.modeling_outputs import CausalLMOutputWithPast
 from transformers.modeling_utils import PreTrainedModel
 from transformers.utils import ModelOutput, logging
@@ -41,7 +41,7 @@ class InternVLChatModel(PreTrainedModel):
     main_input_name = 'pixel_values'
     base_model_prefix = 'language_model'
     _no_split_modules = ['InternVisionModel', 'LlamaDecoderLayer', 'InternLM2DecoderLayer',
-                         'Phi3DecoderLayer', 'Qwen2DecoderLayer']
+                         'Phi3DecoderLayer', 'Qwen2DecoderLayer','Qwen3DecoderLayer']
     _supports_flash_attn_2 = True
     supports_gradient_checkpointing = True
 
@@ -80,6 +80,8 @@ class InternVLChatModel(PreTrainedModel):
                 self.language_model = Phi3ForCausalLM(config.llm_config)
             elif config.llm_config.architectures[0] == 'Qwen2ForCausalLM':
                 self.language_model = Qwen2ForCausalLM(config.llm_config)
+            elif config.llm_config.architectures[0] == 'Qwen3ForCausalLM':
+                self.language_model = Qwen3ForCausalLM(config.llm_config)
             else:
                 raise NotImplementedError(f'{config.llm_config.architectures[0]} is not implemented.')
 

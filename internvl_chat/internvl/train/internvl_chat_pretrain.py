@@ -15,7 +15,7 @@ from copy import deepcopy
 from dataclasses import dataclass, field
 from functools import partial
 from typing import Dict, Literal, Optional
-
+from IPython.core.debugger import set_trace
 import numpy as np
 
 try:
@@ -34,10 +34,11 @@ from internvl.model.internvl_chat import (InternVisionConfig,
                                           InternVLChatModel)
 from internvl.patch import (concat_pad_data_collator,
                             replace_internlm2_attention_class,
-                            replace_llama_attention_class,
+                            # replace_llama_attention_class,
                             replace_llama_rmsnorm_with_fused_rmsnorm,
                             replace_phi3_attention_class,
                             replace_qwen2_attention_class,
+                            replace_qwen3_attention_class,
                             replace_train_dataloader, replace_train_sampler)
 from internvl.train.constants import (BOX_END_TOKEN, BOX_START_TOKEN,
                                       IMG_CONTEXT_TOKEN, IMG_END_TOKEN,
@@ -922,8 +923,9 @@ def main():
     if data_args.use_packed_ds:
         replace_internlm2_attention_class()
         replace_qwen2_attention_class()
+        replace_qwen3_attention_class()
         replace_phi3_attention_class()
-        replace_llama_attention_class()
+        # replace_llama_attention_class()
 
     if model_args.use_liger:
         from internvl.patch import apply_liger_kernel_to_internvit

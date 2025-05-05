@@ -6,7 +6,7 @@
 
 import numpy as np
 import torch
-
+from IPython.core.debugger import set_trace
 IGNORE_INDEX = -100
 
 
@@ -100,8 +100,17 @@ def concat_pad_data_collator(features, max_item_length=None, pad_id=0):
     for k, v in first.items():
         if k not in ('label', 'label_ids', 'pixel_values', 'image_flags') and \
                 v is not None and not isinstance(v, str):
+            
+            ############## BUG FIXED BY ZOUBO ###################
             if isinstance(v, torch.Tensor):
-                batch[k] = torch.stack([f[k] for f in features])
+                if k == 'type_ids':
+                    batch[k] = torch.zeros_like(batch['input_ids'])
+                    for idx, item in enumerate(batch[k]):
+                        batch[k][idx] = item + features[idx][k][0]
+                else:
+                    batch[k] = torch.stack([f[k] for f in features])
+            ####################################################
+
             elif isinstance(v, np.ndarray):
                 batch[k] = torch.tensor(np.stack([f[k] for f in features]))
             else:

@@ -1,49 +1,17 @@
-# set -x
-
-# PARTITION=${PARTITION:-"VC5"}
-# GPUS=${GPUS:-512}
-# GPUS_PER_NODE=${GPUS_PER_NODE:-8}
-# QUOTA_TYPE=${QUOTA_TYPE:-"reserved"}
-# NODES=$((GPUS / GPUS_PER_NODE))
-# CPUS_PER_TASK=${CPUS_PER_TASK:-10}
-# SRUN_ARGS=${SRUN_ARGS:-""}
-
-export PYTHONPATH="${PYTHONPATH}:$(pwd)"
-export MASTER_PORT=34229
-export TF_CPP_MIN_LOG_LEVEL=3
+# replace_qwen2_attention_class()
 export LAUNCHER="pytorch"
-OUTPUT_DIR='./checkpoint/internvl_chat_v2_5/internvl2_5_4b_qwen2_5_3b_dynamic_res_stage1'
+# export CUDA_LAUNCH_BLOCKING=1
+# export TORCH_USE_CUDA_DSA=1
+OUTPUT_DIR='./checkpoint/qwen3_internvit/qwen3-4B_internvit-300M_stage1'
 
 if [ ! -d "$OUTPUT_DIR" ]; then
   mkdir -p "$OUTPUT_DIR"
 fi
 
-# Stage: Stage 1 (MLP Warmup)
-# Architecture: InternViT-300M-448px-V2_5 + MLP + Qwen2.5-3B-Instruct
-# Trainable Components: MLP
-# Number of GPUs: 512
-# Packed Batch Size: 512
-# Learning Rate: 2e-4
-# Context Length: 16384
-# Image Tile Threshold: 48
-# ViT Drop Path: 0.0
-# Weight Decay: 0.01
-# Epoch: None
-# srun -p ${PARTITION} \
-#   --gres=gpu:${GPUS_PER_NODE} \
-#   --nodes=${NODES} \
-#   --ntasks=${GPUS} \
-#   --ntasks-per-node=${GPUS_PER_NODE} \
-#   --cpus-per-task=${CPUS_PER_TASK} \
-#   --kill-on-bad-exit=1 \
-#   --quotatype=${QUOTA_TYPE} \
-#   ${SRUN_ARGS} \
-HOSTLIST=$CUDA_VISIBLE_DEVICES
-NUM_GPUS=$(echo "$HOSTLIST" | tr ',' '\n' | wc -l)
-ACCELERATE_CPU_AFFINITY=1 torchrun  --nproc_per_node=${NUM_GPUS} --nnodes=1 --node_rank=0 --master_port=${MASTER_PORT} \
-  internvl/train/internvl_chat_pretrain.py \
+ACCELERATE_CPU_AFFINITY=1 torchrun  --nproc_per_node=4 \
+  internvl/train/train_mem.py \
   --vision_path "/fs-computility/ai-shen/mllm_safety-shared/models/huggingface/InternViT-300M-448px-V2_5/" \
-  --llm_path "/fs-computility/ai-shen/mllm_safety-shared/models/huggingface/Qwen/Qwen2.5-3B-Instruct/" \
+  --llm_path "/fs-computility/ai-shen/mllm_safety-shared/models/huggingface/Qwen/Qwen3-4B/" \
   --conv_style "internvl2_5" \
   --use_fast_tokenizer False \
   --output_dir ${OUTPUT_DIR} \
@@ -63,7 +31,6 @@ ACCELERATE_CPU_AFFINITY=1 torchrun  --nproc_per_node=${NUM_GPUS} --nnodes=1 --no
   --max_steps 100000 \
   --per_device_train_batch_size 1 \
   --gradient_accumulation_steps 1 \
-  --evaluation_strategy "no" \
   --save_strategy "steps" \
   --save_steps 100 \
   --save_total_limit 3 \
@@ -79,7 +46,7 @@ ACCELERATE_CPU_AFFINITY=1 torchrun  --nproc_per_node=${NUM_GPUS} --nnodes=1 --no
   --dynamic_image_size True \
   --use_thumbnail True \
   --ps_version 'v2' \
-  --deepspeed "zero_stage1_config.json" \
+  --deepspeed "zero_stage3_config.json" \
   --report_to "tensorboard" \
   --use_packed_ds True \
   --num_images_expected 48 \

@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 from transformers.modeling_flash_attention_utils import flash_attn_supports_top_left_mask
 from flash_attn.flash_attn_interface import flash_attn_varlen_func
-from transformers.models.qwen2.modeling_qwen2 import (Qwen2Attention, ALL_ATTENTION_FUNCTIONS, apply_rotary_pos_emb, eager_attention_forward)
+from transformers.models.qwen3.modeling_qwen3 import (Qwen3Attention, ALL_ATTENTION_FUNCTIONS, apply_rotary_pos_emb, eager_attention_forward)
 from typing import Optional, Tuple
 from transformers.cache_utils import Cache
 from IPython.core.debugger import set_trace
@@ -164,7 +164,7 @@ def FlashAttention2ForPackedTraining(
 
 
     
-def replace_qwen2_attention_class():
+def replace_qwen3_attention_class():
     ALL_ATTENTION_FUNCTIONS['flash_attention_2'] = FlashAttention2ForPackedTraining
     # Qwen2Attention = Qwen2FlashAttention2ForPackedTraining
     print('Replace QWEN2_ATTENTION_CLASSES to support packed training!!')

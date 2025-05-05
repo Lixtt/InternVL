@@ -172,3 +172,8 @@ data_process/
 
 batchscript-*
 results/
+
+*checkpoint*
+*log*
+
+internvl_chat/shell/data
